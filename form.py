@@ -8,11 +8,18 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
+import numpy as np
+import matplotlib.pyplot as plt
 
 lineEdit = "path"
 
 
 class Ui_MainWindow(object):
+
+    def __init__(self):
+        self.fileDialog = ""
+        self.u = []
+        self.x = []
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -53,12 +60,31 @@ class Ui_MainWindow(object):
         self.pushButton.setText(_translate("MainWindow", "Plot result"))
 
     def selectFile(self):
-        self.fileDialog = QFileDialog.getOpenFileName()[0]
+        dialog = QFileDialog()
+        self.fileDialog = dialog.getOpenFileNames(filter="*.txt")[0][0]
         print(self.fileDialog)
+        mytextFile = open(self.fileDialog, "r")
+        a = mytextFile.readline()
+        a = mytextFile.readline()
+        count = 0
+        while a:
+            count +=1
+            tab = a.split()
+            self.x += [float(tab[0])]
+            self.u += [float(tab[1])]
+            a = mytextFile.readline()
+        mytextFile.close()
+        plt.plot(self.x,self.u)
+        plt.ylabel('some numbers')
+        plt.show()
+        print("absices : ", self.x)
+        print("vitesses : ", self.u)
 
 
-def selectFile():
-    lineEdit.setText(QFileDialog.getOpenFileName())
+
+
+
+
 
 
 if __name__ == "__main__":
@@ -70,4 +96,5 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     ui.upButton.clicked.connect(ui.selectFile)
+
     sys.exit(app.exec_())
