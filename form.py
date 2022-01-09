@@ -20,6 +20,9 @@ class Ui_MainWindow(object):
         self.fileDialog = ""
         self.u = []
         self.x = []
+        self.xtotal = []
+        self.c = []
+        self.T = 0
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -67,24 +70,57 @@ class Ui_MainWindow(object):
         a = mytextFile.readline()
         a = mytextFile.readline()
         count = 0
-        while a:
-            count +=1
+        while count < 12000:
+            count += 1
             tab = a.split()
             self.x += [float(tab[0])]
             self.u += [float(tab[1])]
             a = mytextFile.readline()
         mytextFile.close()
-        plt.plot(self.x,self.u)
+        negative_x = [element * -1 for element in self.x[1:]]
+        negative_x.sort()
+        self.xtotal = negative_x + self.x
+        print("total x ", len(self.xtotal))
+        plt.plot(self.x, self.u)
         plt.ylabel('some numbers')
         plt.show()
-        print("absices : ", self.x)
-        print("vitesses : ", self.u)
+        print("absices : ", self.xtotal)
+        #print("vitesses : ", self.u)
 
+    def correlation(self):
+        size = len(self.x)
+        self.c = np.zeros(size*2-1)
+        print("heello", size)
 
+        for i in range(-size+1,size):
 
+            sum = 0
+            for j in range(size):
+                if size > j - i >= 0:
+                    sum += self.u[j] * self.u[j - i]
 
+            self.c[i+size-1] = sum
 
+        print(self.c)
+        plt.plot(self.xtotal, self.c)
+        plt.ylabel('some numbers')
+        plt.show()
+        var = 0
+        for k in range(size-1, size*2 - 1):
+            if self.c[k] < 0 and (var == 0 or var == 2):
+                var += 1
+                if var == 1:
+                    t1 = self.xtotal[k-1]
+                if var == 3:
+                    t2 = self.xtotal[k-1]
+                    break
+            if self.c[k] > 0 and var == 1:
+                var += 1
 
+        self.T = t2 - t1
+        print("T : ", self.T)
+        #print("absices : ", self.xtotal)
+        #print("vitesses : ", self.c)
 
 
 if __name__ == "__main__":
@@ -96,5 +132,6 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     ui.upButton.clicked.connect(ui.selectFile)
+    ui.pushButton.clicked.connect(ui.correlation)
 
     sys.exit(app.exec_())
