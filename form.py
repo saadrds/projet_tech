@@ -23,6 +23,8 @@ class Ui_MainWindow(object):
         self.xtotal = []
         self.c = []
         self.T = 0
+        self.points = 0
+        self.signaux = []
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -70,7 +72,7 @@ class Ui_MainWindow(object):
         a = mytextFile.readline()
         a = mytextFile.readline()
         count = 0
-        while count < 12000:
+        while count < 4000:
             count += 1
             tab = a.split()
             self.x += [float(tab[0])]
@@ -102,25 +104,52 @@ class Ui_MainWindow(object):
             self.c[i+size-1] = sum
 
         print(self.c)
-        plt.plot(self.xtotal, self.c)
-        plt.ylabel('some numbers')
-        plt.show()
+        #plt.plot(self.xtotal, self.c)
+        #plt.ylabel('some numbers')
+        #
         var = 0
+        cond = 0
+        cond1 = 0
+        cond2 = 0
         for k in range(size-1, size*2 - 1):
             if self.c[k] < 0 and (var == 0 or var == 2):
+                if cond == 0 :
+                    cond1 = k - 1
+                    cond = 1
                 var += 1
                 if var == 1:
                     t1 = self.xtotal[k-1]
                 if var == 3:
                     t2 = self.xtotal[k-1]
+                    cond2 = k-1
                     break
             if self.c[k] > 0 and var == 1:
                 var += 1
 
+        self.points = cond2 - cond1 + 1
+
         self.T = t2 - t1
         print("T : ", self.T)
+        print("nb Points : ", self.points)
         #print("absices : ", self.xtotal)
         #print("vitesses : ", self.c)
+        self.waves()
+
+
+    def waves(self):
+        k = -1
+        ligne = len(self.x) // self.points
+        self.signaux = np.zeros((ligne, self.points))
+        for i in range(ligne):
+            for j in range(self.points):
+                k += 1
+                self.signaux[i][j] = self.u[k]
+        fig, axs = plt.subplots(2, 2)
+        for i in range(2):
+            for j in range(2):
+                axs[i, j].plot(self.x[0:self.points], self.signaux[0])
+        plt.show()
+        print(self.signaux)
 
 
 if __name__ == "__main__":
