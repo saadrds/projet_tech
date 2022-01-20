@@ -25,6 +25,7 @@ class Ui_MainWindow(object):
         self.T = 0
         self.points = 0
         self.signaux = []
+        self.moyenne = []
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -72,7 +73,7 @@ class Ui_MainWindow(object):
         a = mytextFile.readline()
         a = mytextFile.readline()
         count = 0
-        while count < 4000:
+        while a:
             count += 1
             tab = a.split()
             self.x += [float(tab[0])]
@@ -93,19 +94,20 @@ class Ui_MainWindow(object):
         size = len(self.x)
         self.c = np.zeros(size*2-1)
         print("heello", size)
-
-        for i in range(-size+1,size):
-
+        size = size//64
+        for i in range(0,size): #i = 7
             sum = 0
-            for j in range(size):
+            for j in range(size): #j = 0
                 if size > j - i >= 0:
                     sum += self.u[j] * self.u[j - i]
 
             self.c[i+size-1] = sum
+        self.c = np.correlate(self.u,self.u,'full')
 
         print(self.c)
-        #plt.plot(self.xtotal, self.c)
-        #plt.ylabel('some numbers')
+        plt.plot(self.c)
+        plt.ylabel('some numbers')
+        plt.show()
         #
         var = 0
         cond = 0
@@ -135,7 +137,6 @@ class Ui_MainWindow(object):
         #print("vitesses : ", self.c)
         self.waves()
 
-
     def waves(self):
         k = -1
         ligne = len(self.x) // self.points
@@ -144,12 +145,26 @@ class Ui_MainWindow(object):
             for j in range(self.points):
                 k += 1
                 self.signaux[i][j] = self.u[k]
-        fig, axs = plt.subplots(2, 2)
+        fig, axs = plt.subplots(3, 2)
+        index_s = 0
         for i in range(2):
             for j in range(2):
-                axs[i, j].plot(self.x[0:self.points], self.signaux[0])
+                index_s += 1
+                if i== 1 and j == 1 :
+                    axs[i, j].plot(self.x[0:self.points], self.signaux[index_s])
+                else :
+                    axs[i, j].plot(self.x[0:self.points], self.signaux[403])
+
+        self.moyenne = np.zeros(self.points)
+        for i in range(self.points):
+            somme = 0
+            for j in range(ligne):
+                somme += self.signaux[j][i]
+            self.moyenne[i] = somme
+        axs[2,0].plot(self.x[0:self.points], self.moyenne)
         plt.show()
-        print(self.signaux)
+        #print(self.moyenne)
+
 
 
 if __name__ == "__main__":
