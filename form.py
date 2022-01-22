@@ -26,6 +26,7 @@ class Ui_MainWindow(object):
         self.points = 0
         self.signaux = []
         self.moyenne = []
+        self.fft = []
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -87,14 +88,15 @@ class Ui_MainWindow(object):
         plt.plot(self.x, self.u)
         plt.ylabel('some numbers')
         plt.show()
-        print("absices : ", self.xtotal)
+        #print("absices : ", self.xtotal)
         #print("vitesses : ", self.u)
 
     def correlation(self):
         size = len(self.x)
-        self.c = np.zeros(size*2-1)
+        #self.c = np.zeros(size*2-1)
         print("heello", size)
-        size = size//64
+        #size = size//640
+        """"
         for i in range(0,size): #i = 7
             sum = 0
             for j in range(size): #j = 0
@@ -102,17 +104,29 @@ class Ui_MainWindow(object):
                     sum += self.u[j] * self.u[j - i]
 
             self.c[i+size-1] = sum
-        self.c = np.correlate(self.u,self.u,'full')
+        """
+        self.c = np.correlate(self.u,self.u,'same')
 
         print(self.c)
-        plt.plot(self.c)
-        plt.ylabel('some numbers')
-        plt.show()
+        #plt.plot(self.c)
+        signal_carre = np.copy(self.c)
+        signal_carre[np.where([self.c > 0][0])] = 1
+        signal_carre[np.where([self.c < 0][0])] = -1
+        diff = np.diff(signal_carre)
+        #plt.plot(diff)
+        idx = np.where([diff>0][0])
+
+        self.T = self.x[idx[0][2]] - self.x[idx[0][1]]
+        self.points = idx[0][2] - idx[0][1]
+        #plt.ylabel('some numbers')
+        #plt.show()
         #
+        """"
         var = 0
         cond = 0
         cond1 = 0
         cond2 = 0
+       
         for k in range(size-1, size*2 - 1):
             if self.c[k] < 0 and (var == 0 or var == 2):
                 if cond == 0 :
@@ -131,6 +145,9 @@ class Ui_MainWindow(object):
         self.points = cond2 - cond1 + 1
 
         self.T = t2 - t1
+        """
+
+
         print("T : ", self.T)
         print("nb Points : ", self.points)
         #print("absices : ", self.xtotal)
@@ -145,7 +162,7 @@ class Ui_MainWindow(object):
             for j in range(self.points):
                 k += 1
                 self.signaux[i][j] = self.u[k]
-        fig, axs = plt.subplots(3, 2)
+        """fig, axs = plt.subplots(3, 2)
         index_s = 0
         for i in range(2):
             for j in range(2):
@@ -154,14 +171,17 @@ class Ui_MainWindow(object):
                     axs[i, j].plot(self.x[0:self.points], self.signaux[index_s])
                 else :
                     axs[i, j].plot(self.x[0:self.points], self.signaux[403])
-
+        """
         self.moyenne = np.zeros(self.points)
         for i in range(self.points):
             somme = 0
             for j in range(ligne):
                 somme += self.signaux[j][i]
             self.moyenne[i] = somme
-        axs[2,0].plot(self.x[0:self.points], self.moyenne)
+        #axs[2,0].plot(self.x[0:self.points], self.moyenne)
+        #plt.show()
+        self.fft = np.fft.fft(self.u)
+        plt.plot(self.fft)
         plt.show()
         #print(self.moyenne)
 
