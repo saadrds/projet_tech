@@ -10,6 +10,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QFileDialog
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import signal
 
 lineEdit = "path"
 
@@ -27,6 +28,7 @@ class Ui_MainWindow(object):
         self.signaux = []
         self.moyenne = []
         self.fft = []
+        self.size = 0
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -92,9 +94,9 @@ class Ui_MainWindow(object):
         #print("vitesses : ", self.u)
 
     def correlation(self):
-        size = len(self.x)
+        self.size = len(self.x)
         #self.c = np.zeros(size*2-1)
-        print("heello", size)
+        #print("heello", self.size)
         #size = size//640
         """"
         for i in range(0,size): #i = 7
@@ -154,6 +156,70 @@ class Ui_MainWindow(object):
         #print("vitesses : ", self.c)
         self.waves()
 
+    def correlation_2(self):
+        self.size = len(self.x)
+        # self.c = np.zeros(size*2-1)
+        # size = size//640
+        """"
+        for i in range(0,size): #i = 7
+            sum = 0
+            for j in range(size): #j = 0
+                if size > j - i >= 0:
+                    sum += self.u[j] * self.u[j - i]
+
+            self.c[i+size-1] = sum
+        """
+        self.c = signal.correlate(self.u,self.u)
+
+        print(self.c)
+        # plt.plot(self.c)
+        signal_carre = np.copy(self.c)
+        signal_carre[np.where([self.c > 0][0])] = 1
+        signal_carre[np.where([self.c < 0][0])] = -1
+        diff = np.diff(signal_carre)
+        # plt.plot(diff)
+        idx = np.where([diff > 0][0])
+        idx_diff = np.diff(idx)
+        midx = np.mean(idx_diff)
+        print('periode = {}'.format(midx))
+        self.T = self.x[int(np.round(midx))]
+        #self.T = self.x[idx[0][2]] - self.x[idx[0][1]]
+        self.points = int(np.round(midx))
+        # plt.ylabel('some numbers')
+        # plt.show()
+        #
+        """"
+        var = 0
+        cond = 0
+        cond1 = 0
+        cond2 = 0
+
+        for k in range(size-1, size*2 - 1):
+            if self.c[k] < 0 and (var == 0 or var == 2):
+                if cond == 0 :
+                    cond1 = k - 1
+                    cond = 1
+                var += 1
+                if var == 1:
+                    t1 = self.xtotal[k-1]
+                if var == 3:
+                    t2 = self.xtotal[k-1]
+                    cond2 = k-1
+                    break
+            if self.c[k] > 0 and var == 1:
+                var += 1
+
+        self.points = cond2 - cond1 + 1
+
+        self.T = t2 - t1
+        """
+
+        print("T : ", self.T)
+        print("nb Points : ", self.points)
+        # print("absices : ", self.xtotal)
+        # print("vitesses : ", self.c)
+        self.waves()
+
     def waves(self):
         k = -1
         ligne = len(self.x) // self.points
@@ -181,7 +247,9 @@ class Ui_MainWindow(object):
         #axs[2,0].plot(self.x[0:self.points], self.moyenne)
         #plt.show()
         self.fft = np.fft.fft(self.u)
-        plt.plot(self.fft)
+        fe = 1 / (self.x[1] - self.x[0])
+        self.f_tab = np.arange(0, fe, fe/self.size)
+        plt.plot(self.f_tab[0:int(self.size/2)], np.abs(self.fft[0:int(self.size/2)]))
         plt.show()
         #print(self.moyenne)
 
@@ -196,6 +264,6 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     ui.upButton.clicked.connect(ui.selectFile)
-    ui.pushButton.clicked.connect(ui.correlation)
+    ui.pushButton.clicked.connect(ui.correlation_2)
 
     sys.exit(app.exec_())
